@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../providers/Auth";
 import { useConversation } from "../customhooks/conversation-hook";
-import { useRecognizer } from "../customhooks/recognizer-hook";
+import { useMicrophone, useRecognizer } from "../customhooks/recognizer-hook";
 import { useSynthesize } from "../customhooks/synthesizer-hook";
 import { useQueue } from "@uidotdev/usehooks";
 import {
@@ -9,6 +9,8 @@ import {
   CancellationReason,
 } from "microsoft-cognitiveservices-speech-sdk";
 import axios from "axios";
+import { BASEURL } from "../modules/envirnoment";
+import { useSpeechConfig } from "../modules/token_util";
 
 function SpeechToText() {
   const { user, logout } = useAuth();
@@ -25,10 +27,14 @@ function SpeechToText() {
   const { conversation, disableModel, enableModel, addToConversation } =
     useConversation();
 
-  const { speechRecognizer, listening, setListening, speakHandler } =
-    useRecognizer();
+    const {speechConfig} = useSpeechConfig();
 
-  const { speechSynthesizer, player } = useSynthesize();
+  const { speechRecognizer, listening, setListening, speakHandler } =
+    useRecognizer(speechConfig);
+
+    const {audioLevel, startAudioContext} = useMicrophone();
+
+  const { speechSynthesizer, player } = useSynthesize(speechConfig);
 
   const [stopFlag, setStopFlag] = useState(false);
 
@@ -127,7 +133,7 @@ function SpeechToText() {
 
   useEffect(() => {
     // Establish SSE connection
-    const eventSource = new EventSource('api/speech/sse');
+    const eventSource = new EventSource(`${BASEURL}/api/speech/sse`, {withCredentials: true});
     console.log(eventSource);
 
     // Event listener for messages from the server
@@ -193,6 +199,8 @@ function SpeechToText() {
       <button onClick={logout}>Logout</button>
       <button onClick={enQueue}>Enqueue</button>
       <button onClick={sendMessage}>Send Message</button>
+      <button onClick={startAudioContext}>Start Audio Context</button>
+      <p>{audioLevel}</p>
     </>
   );
 }

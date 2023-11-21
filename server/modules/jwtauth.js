@@ -17,6 +17,7 @@ export const verifyToken = (req, res, next) => {
 
   //read the authToken from cookie
   const token = req.cookies.authToken;
+  // console.log("token", token);  
   // console.log("token", token);
 
   //extract token from Authorization header that contains bearer token

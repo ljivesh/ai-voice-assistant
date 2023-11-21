@@ -3,9 +3,9 @@ import { useCallback, useMemo, useState } from "react";
 import { useSpeechConfig } from "../modules/token_util";
 import { AudioConfig, SpeechSynthesizer, SpeakerAudioDestination, PullAudioOutputStream } from "microsoft-cognitiveservices-speech-sdk";
 
-export const useSynthesize = () => {
+export const useSynthesize = (speechConfig) => {
     
-    const { speechConfig } = useSpeechConfig();
+    // const { speechConfig } = useSpeechConfig();
   
 
     const player = useMemo(()=> new SpeakerAudioDestination(),[]);
