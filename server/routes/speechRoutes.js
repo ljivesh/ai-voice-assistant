@@ -2,6 +2,7 @@ import { Router } from "express";
 import { verifyToken } from "../modules/jwtauth.js";
 import axios from "axios";
 import OpenAI from "openai";
+// import v4 from "uuid";
 import speechConfig from "../config/speechConfig.js";
 import openaiConfig from "../config/openaiConfig.js";
 import ResponseQueue from "../models/ResponseQueue.js";
@@ -11,10 +12,59 @@ const { apiKey } = openaiConfig;
 
 const openai = new OpenAI({ apiKey: apiKey });
 
-const conversations = [];
-let stopCondition = false;
+
+const users = {};
 
 const router = Router();
+
+router.get('/sse', verifyToken, (req, res)=> {
+
+  //get userId from token
+  const userId = req.user.userId;
+
+  //set headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  
+  //keep track of the user
+  users[userId] = {res, stopCondition: false};
+  console.log(users);
+
+  // res.write(`data: ${JSON.stringify({ userId })}\n\n`);
+
+
+
+
+  req.on('close', () => {
+
+    //delete user from users object on connection close
+    console.log(`Deleted ${userId} from users)`);
+    delete users[userId];
+  });
+  
+});
+
+router.post('/send-through-sse',verifyToken, (req, res)=> {
+
+  const {userId } = req.user;
+
+  const {message} = req.body;
+
+  const {res: userRes} = users[userId];
+
+  if(userRes) {
+
+    userRes.write(`data: ${message}\n\n`);
+    res.status(200).json({message: "Message sent"});
+  }
+  else {
+    res.status(400).json({message: "User not found"});
+  }
+
+
+
+});
 
 router.get("/get-speech-token", verifyToken, async (req, res) => {
   if (
@@ -50,27 +100,24 @@ router.get("/get-speech-token", verifyToken, async (req, res) => {
   }
 });
 
+
 router.post("/post-conversation", verifyToken, async (req, res) => {
   try {
     const { userId } = req.user;
-
     const conversation = req.body.conversation;
-  
 
-    const temp = conversations.find((user) => user.userId === userId);
-    if(!temp) {
-      conversations.push({ userId: userId, conversation: conversation });
-    } else {
-      temp.conversation = conversation;
-    }
+    const user = users[userId];
 
-
-    const user = conversations.find((user) => user.userId === userId); 
-
-    if(stopCondition) {
-      res.json(user.conversation);
+    if (!user) {
+      res.status(404).json({ message: "User not found" });
       return;
     }
+
+    // if (user.stopCondition) {
+    //   res.json(null);
+    //   return;
+    // }
+
 
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
@@ -78,52 +125,79 @@ router.post("/post-conversation", verifyToken, async (req, res) => {
       stream: true,
     });
 
-    let bufferString = ""; //buffer to hold the chunks of data from openai
-    // const responseQueue = await ResponseQueue.getQueueByUserId(userId);
+    const sendToClient = (string)=> {
+
+      console.log("calling");
+      user.res.write(`data: ${string}\n\n`);
+    };
+
+
+    let bufferString = "";
+
+    // for await (const chunk of completion) {
+    //   // if (user.stopCondition) {
+    //   //   break;
+    //   // }
+
+    //   console.log(chunk.choices[0].delta.content);
+
+    //   if (chunk.choices[0].delta.content === null) {
+    //     // user.res.write(`data: ${bufferString}\n\n`);
+    //      sendToClient(bufferString);
+    //     res.json({ message: "Enqueued successfully" });
+    //     break;
+    //   }
+
+    //   if (
+    //     chunk.choices[0].delta.content &&
+    //     chunk.choices[0].delta.content.includes(".")
+    //   ) {
+    //     // user.res.write(`data: ${bufferString}\n\n`);
+    //     sendToClient(bufferString);
+    //     bufferString = "";
+    //     continue;
+    //   }
+      
+    //   bufferString = bufferString.concat(chunk.choices[0].delta.content);
+    // }
 
     for await (const chunk of completion) {
-
-      if(stopCondition) {
-        
+      if (user.stopCondition) {
         break;
       }
-
-      console.log(chunk.choices[0].delta.content);
-      if (chunk.choices[0].delta.content === null) {
-        user.conversation.push({ role: "assistant", content: bufferString });
-        res.json(user.conversation);
-        break;
+    
+      try {
+        const content = chunk.choices[0].delta.content;
+        // console.log(content);
+    
+        if (content === undefined) {
+          user.res.write(`data: ${bufferString}\n\n`);
+          // res.json({ message: "Enqueued successfully" });
+          break;
+        }
+    
+        if (content && content.includes(".")) {
+          user.res.write(`data: ${bufferString}\n\n`);
+          bufferString = "";
+          continue;
+        }
+    
+        bufferString += content;
+      } catch (error) {
+        console.error('Error processing SSE chunk:', error);
+        break;  // Break the loop on error
       }
-
-      if (
-        chunk.choices[0].delta.content &&
-        chunk.choices[0].delta.content.includes(".")
-      ) {
-        await user.conversation.push({
-          role: "assistant",
-          content: bufferString + ".",
-        });
-        bufferString = "";
-        continue;
-      }
-      // console.log(chunk.choices[0].delta.content);
-      bufferString = bufferString.concat(chunk.choices[0].delta.content);
-      // console.log(bufferString);
     }
-
-    res.json(user.conversation);
-
-    // responseArray.push(bufferString);
-    // console.log(responseArray);
-
-    // res.json(responseArray);
-
-    // res.json(conversations);
+    
+    
+    // user.res.write(`data: Test Test Test\n\n`);
+    res.json(null);
   } catch (error) {
     console.log(error);
     res.status(500).send("Server Error");
   }
 });
+
 
 router.get("/fetch-conversation", verifyToken, async (req, res) => {
   try {
@@ -147,8 +221,14 @@ router.get("/fetch-conversation", verifyToken, async (req, res) => {
 });
 
 router.post('/disable-model', verifyToken, async (req, res) => { 
-  stopCondition = true;
-  console.log("from stop route"+stopCondition);
+
+  const {userId} = req.user;
+
+  const user = users[userId];
+
+  user.stopCondition = true;
+
+  console.log("from stop route"+user.stopCondition);
 
 
 
@@ -156,8 +236,14 @@ router.post('/disable-model', verifyToken, async (req, res) => {
 });
 
 router.post('/enable-model', verifyToken, async (req, res) => {
-  stopCondition = false;
-  console.log("from enable route"+stopCondition);
+
+  const {userId} = req.user;
+
+  const user = users[userId];
+
+  user.stopCondition = false;
+  
+  console.log("from enable route"+user.stopCondition);
   res.json({message: "Conversation enabled"});
 });
 

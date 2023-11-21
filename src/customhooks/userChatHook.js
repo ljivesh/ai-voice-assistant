@@ -120,7 +120,7 @@ export const useSynthesize = ({conversation, player}) => {
   // const { conversation } = useConversation();
 
   // const {player} = usePlayer();
-
+7
   const audioConfig = useMemo(() => {
     if (player) return AudioConfig.fromSpeakerOutput(player);
   }, [player]);
