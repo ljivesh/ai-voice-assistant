@@ -5,10 +5,10 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 
-// import {fileURLToPath} from 'url';
-// import { dirname, resolve } from "path";
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
+import {fileURLToPath} from 'url';
+import { dirname, resolve } from "path";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 
 import serverConfig from './config/serverConfig.js';
@@ -30,14 +30,14 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 app.use(cookieParser());
-// app.use(express.static(resolve(__dirname, '../dist')));
+app.use(express.static(resolve(__dirname, '../dist')));
 
 app.use('/api/user', authRouter);
 app.use('/api/speech', speechRouter);
 
-app.get('/api/check', (req, res)=> {
-    // res.sendFile(resolve(__dirname, '../dist/index.html'));
-    res.send('Hello World');
+app.get('/', (req, res)=> {
+    res.sendFile(resolve(__dirname, '../dist/index.html'));
+    // res.send('Hello World');
 });
 
 const {port} = serverConfig;
