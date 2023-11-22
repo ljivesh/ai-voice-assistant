@@ -17,6 +17,15 @@ jobs:
         node-version: [20.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
+    env:
+      SERVER_PORT: ${{ env.SERVER_PORT }}
+      SPEECH_REGION: ${{ env.SPEECH_REGION }}
+      VITE_SERVER_BASE_URL: ${{ env.VITE_SERVER_BASE_URL }}
+      MONGO_URI: ${{ secrets.MONGO_URI }}
+      JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+      SPEECH_KEY: ${{ secrets.SPEECH_KEY }}
+      OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+
     steps:
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
