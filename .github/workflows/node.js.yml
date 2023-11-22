@@ -12,7 +12,6 @@ jobs:
     strategy:
       matrix:
         node-version: [20.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     env:
       SERVER_PORT: ${{ vars.SERVER_PORT }}
@@ -31,6 +30,10 @@ jobs:
         echo "SERVER_PORT=${SERVER_PORT}" >> $GITHUB_ENV
         echo "SPEECH_REGION=${SPEECH_REGION}" >> $GITHUB_ENV
         echo "VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL}" >> $GITHUB_ENV
+        echo "MONGO_URI=${MONGO_URI}" >> $GITHUB_ENV
+        echo "JWT_SECRET_KEY=${JWT_SECRET_KEY}" >> $GITHUB_ENV
+        echo "SPEECH_KEY=${SPEECH_KEY}" >> $GITHUB_ENV
+        echo "OPENAI_KEY=${OPENAI_KEY}" >> $GITHUB_ENV
 
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
