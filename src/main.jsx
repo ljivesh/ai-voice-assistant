@@ -6,7 +6,7 @@ import AuthProvider from "./providers/Auth.jsx";
 import axios from "axios";
 import { BASEURL } from "./modules/envirnoment.js";
 
-axios.defaults.baseURL = BASEURL;
+// axios.defaults.baseURL = BASEURL;
 axios.defaults.withCredentials = true;
 
 
