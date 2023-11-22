@@ -3,41 +3,29 @@ import axios from "axios";
 import { useSpeechConfig } from "../modules/token_util";
 import { AudioConfig, SpeechRecognizer } from "microsoft-cognitiveservices-speech-sdk";
 
-
-
 export const useRecognizer = (speechConfig) => {
-  
-    //using latest speechConfig (token and region)
-    // const { speechConfig } = useSpeechConfig();
-  
-  
-  
-    //indicator for whether speech recognition is listening
-    const [listening, setListening] = useState(false);
-  
-    //reference to speech recognizer
-    const audioConfig = useMemo(() => AudioConfig.fromDefaultMicrophoneInput(), []);
+  const [listening, setListening] = useState(false);
+  const [speechRecognizer, setSpeechRecognizer] = useState(null);
 
-    const speechRecognizer = useMemo(() => {
-      if (speechConfig && audioConfig)
-        return new SpeechRecognizer(speechConfig, audioConfig);
-    }, [speechConfig, audioConfig]);
-  
-    const speakHandler = useCallback(() => {
-      //toggle b/w start and stop speech recognition
-  
-      if (!listening) {
-        speechRecognizer.startContinuousRecognitionAsync();
-        setListening(true);
+  const speakHandler = useCallback(() => {
+    if (!listening) {
+      if (!speechRecognizer) {
+        const audioConfig = AudioConfig.fromDefaultMicrophoneInput();
+        const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
+        setSpeechRecognizer(recognizer);
+        recognizer.startContinuousRecognitionAsync();
       } else {
-        speechRecognizer.stopContinuousRecognitionAsync();
-        setListening(false);
+        speechRecognizer.startContinuousRecognitionAsync();
       }
-    }, [listening, speechRecognizer]);
-  
-    return { listening, speakHandler, speechRecognizer, setListening };
-  };
-  
+      setListening(true);
+    } else {
+      speechRecognizer.stopContinuousRecognitionAsync();
+      setListening(false);
+    }
+  }, [listening, speechRecognizer, speechConfig]);
+
+  return { listening, speakHandler, speechRecognizer, setListening };
+};
 
 
 export  function useMicrophone() {
