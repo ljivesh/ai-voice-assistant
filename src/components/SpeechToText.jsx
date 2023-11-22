@@ -133,7 +133,7 @@ function SpeechToText() {
 
   useEffect(() => {
     // Establish SSE connection
-    const eventSource = new EventSource(`${BASEURL}/api/speech/sse`, {withCredentials: true});
+    const eventSource = new EventSource(`/api/speech/sse`, {withCredentials: true});
     console.log(eventSource);
 
     // Event listener for messages from the server
