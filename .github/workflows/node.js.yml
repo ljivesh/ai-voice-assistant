@@ -28,6 +28,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Set up environment variables
+      run: |
+        echo "SERVER_PORT=${SERVER_PORT}" >> $GITHUB_ENV
+        echo "SPEECH_REGION=${SPEECH_REGION}" >> $GITHUB_ENV
+        echo "VITE_SERVER_BASE_URL=${VITE_SERVER_BASE_URL}" >> $GITHUB_ENV
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v3
       with:
