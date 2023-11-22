@@ -40,5 +40,9 @@ app.get('/', (req, res)=> {
     // res.send('Hello World');
 });
 
+app.get('/api/test', (req, res)=> {
+    res.json({message: 'Hello World'});
+});
+
 const {port} = serverConfig;
 app.listen(port, ()=>console.log(`Server started at port: ${port}`));
