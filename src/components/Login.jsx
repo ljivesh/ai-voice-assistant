@@ -30,7 +30,7 @@ function Login() {
     return (
         <div className={styles.body}>
             <form onSubmit={handleSubmit} className={styles.loginForm}>
-                <h1 className={styles.header}>Login</h1>
+                <h1 className={styles.header}>Login to use AI VoiceChat</h1>
                 <label>
                 Username:
                 <input type="text" value={username} onChange={handleUsernameChange} />
