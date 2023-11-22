@@ -32,15 +32,15 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 app.use(express.static(resolve(__dirname, '../dist')));
 
-app.use('/api/user', authRouter);
-app.use('/api/speech', speechRouter);
+app.use('/user', authRouter);
+app.use('/speech', speechRouter);
 
 app.get('/', (req, res)=> {
     res.sendFile(resolve(__dirname, '../dist/index.html'));
     // res.send('Hello World');
 });
 
-app.get('/api/test', (req, res)=> {
+app.get('/test', (req, res)=> {
     res.json({message: 'Hello World'});
 });
 
