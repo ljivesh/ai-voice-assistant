@@ -1,8 +1,7 @@
-# React + Vite
+# AI Voice Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A voice chat assistant you talk to in the browser: Azure speech-to-text captures what you say, an Express server gets a reply from OpenAI, and Azure text-to-speech speaks it back. Includes JWT login with MongoDB and a GitHub Actions workflow.
 
-Currently, two official plugins are available:
+**Stack:** React, Vite, Express, OpenAI API, Azure Speech SDK, MongoDB (Mongoose), JWT
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Run:** `npm install`, set `OPENAI_KEY`, `SPEECH_KEY`, `SPEECH_REGION`, `MONGO_URI`, `JWT_SECRET_KEY` and `SERVER_PORT`, then `npm run serve` (API) and `npm run dev` (frontend).
